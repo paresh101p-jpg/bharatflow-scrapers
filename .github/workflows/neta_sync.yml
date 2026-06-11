@@ -1,0 +1,59 @@
+name: Neta Photo & Data Sync
+
+on:
+  schedule:
+    # Runs every day at 11:30 PM IST (6:00 PM UTC)
+    - cron: '0 18 * * *'
+  workflow_dispatch:  # Manual trigger button on GitHub
+
+jobs:
+  fetch_photos:
+    name: Fetch Real Photos from Wikipedia
+    runs-on: ubuntu-latest
+    timeout-minutes: 350  # ~5.8 hours max
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install supabase requests
+
+      - name: Run Photo Fetcher
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/fetch_neta_photos.py
+
+  fetch_data:
+    name: Fetch Leader Affidavit Data from MyNeta.info
+    runs-on: ubuntu-latest
+    needs: fetch_photos  # Wait for photos to finish first
+    timeout-minutes: 350  # ~5.8 hours max
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install supabase requests beautifulsoup4 lxml
+
+      - name: Run Data Fetcher
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/fetch_neta_data.py
