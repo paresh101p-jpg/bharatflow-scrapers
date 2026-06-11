@@ -11,7 +11,7 @@ supabase = create_client(url, key)
 def get_yearly_records(lat, lon):
     try:
         end_date = datetime.now().date() - timedelta(days=1)
-        start_date = end_date - timedelta(days=365)
+        start_date = end_date - timedelta(days=3650) # 10 years historical data
         archive_url = (f"https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}"
                        f"&start_date={start_date}&end_date={end_date}"
                        f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto")
