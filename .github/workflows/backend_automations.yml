@@ -1,0 +1,47 @@
+name: Backend Automations (Alerts & Currency)
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Har ghante chalega
+  workflow_dispatch: # Manual run button
+
+jobs:
+  run-alerts:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          
+      - name: Install dependencies
+        working-directory: ./backend_scripts
+        run: npm install --legacy-peer-deps
+
+      - name: Create Firebase Admin JSON & Validate Secrets
+        working-directory: ./backend_scripts
+        run: |
+          if [ -z "$FIREBASE_ADMIN_JSON" ]; then
+            echo "❌ ERROR: FIREBASE_ADMIN_JSON secret is empty or missing!"
+            exit 1
+          fi
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "❌ ERROR: Supabase secrets are missing!"
+            exit 1
+          fi
+          node -e "const fs = require('fs'); fs.writeFileSync('firebase-admin.json', process.env.FIREBASE_ADMIN_JSON);"
+        env:
+          FIREBASE_ADMIN_JSON: ${{ secrets.FIREBASE_ADMIN_JSON }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run Alert Engine (Includes Currency Auto-Update)
+        working-directory: ./backend_scripts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node alert_engine.js

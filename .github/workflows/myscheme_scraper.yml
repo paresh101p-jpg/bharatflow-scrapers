@@ -1,0 +1,29 @@
+name: Daily myscheme.gov.in Scraper
+
+on:
+  schedule:
+    # Runs every day at 12:00 AM UTC (5:30 AM IST)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests psycopg2-binary deep-translator selenium supabase
+
+    - name: Run Auto Scraper
+      run: |
+        python backend/subsidies_scraper/scraper.py

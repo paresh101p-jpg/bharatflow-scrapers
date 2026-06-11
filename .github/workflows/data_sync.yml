@@ -1,0 +1,29 @@
+name: BharatFlow Data Sync
+
+on:
+  schedule:
+    - cron: '0 4,12 * * *' # Runs 2 times a day (9:30 AM and 5:30 PM IST)
+  workflow_dispatch:
+
+jobs:
+  sync_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests supabase pandas
+
+      - name: Run Scraper & Sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GOV_API_KEY: ${{ secrets.GOV_API_KEY }}
+        run: python scripts/sync_data.py

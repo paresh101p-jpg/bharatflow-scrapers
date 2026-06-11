@@ -1,0 +1,48 @@
+name: Daily News Sync
+
+on:
+  schedule:
+    # Runs at 01:30 UTC every day, which is 07:00 AM IST.
+    - cron: '30 1 * * *'
+  workflow_dispatch: # Allows you to manually trigger the sync from the GitHub Actions tab
+
+jobs:
+  sync_news:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./backend_scripts
+
+    - name: Create Firebase Admin JSON & Validate Secrets
+      working-directory: ./backend_scripts
+      run: |
+        if [ -z "$FIREBASE_ADMIN_JSON" ]; then
+          echo "❌ ERROR: FIREBASE_ADMIN_JSON secret is empty or missing!"
+          exit 1
+        fi
+        if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+          echo "❌ ERROR: Supabase secrets are missing!"
+          exit 1
+        fi
+        node -e "const fs = require('fs'); fs.writeFileSync('firebase-admin.json', process.env.FIREBASE_ADMIN_JSON);"
+      env:
+        FIREBASE_ADMIN_JSON: ${{ secrets.FIREBASE_ADMIN_JSON }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    - name: Run News Sync Script
+      run: node news_sync.js
+      working-directory: ./backend_scripts
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
