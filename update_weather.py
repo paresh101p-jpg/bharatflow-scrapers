@@ -23,8 +23,10 @@ def get_yearly_records(lat, lon):
         mn_t_d = daily['time'][daily['temperature_2m_min'].index(mn_t)]
         mx_r = max(daily['precipitation_sum'])
         mx_r_d = daily['time'][daily['precipitation_sum'].index(mx_r)]
+        time.sleep(0.5) # Prevents hitting burst rate limits
         return mx_t, mx_t_d, mn_t, mn_t_d, mx_r, mx_r_d
     except:
+        time.sleep(0.5)
         return None, None, None, None, None, None
 
 def update_weather():
