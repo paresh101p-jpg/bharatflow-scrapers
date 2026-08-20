@@ -8,10 +8,13 @@ permissions:
   contents: write
 
 jobs:
-  cronjob-based-update-readme:
+  keepalive:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v2
-        with:
-          commit_message: "chore: Auto-keepalive to prevent 60-day cron suspension"
+      - name: Make an empty commit to keep repo active
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: Keepalive to prevent 60-day cron suspension"
+          git push
